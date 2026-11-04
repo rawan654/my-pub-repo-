@@ -42,6 +42,7 @@ int command_cls(int number_of_arguments, char **arguments);
 //=============
 //TODO: Lab2.Hands.On: declare the command function here
 int command_create_buddy_space(int number_of_arguments,char **arguments);
+int command_delete_buddy_space(int number_of_arguments,char **arguments);
 int command_kpa(int number_of_arguments, char **arguments);
 
 
