@@ -1,0 +1,17 @@
+# Windows reserved filename
+CON
+
+# Eclipse workspace metadata
+.metadata/
+RemoteSystemsTempFiles/
+
+# Build artifacts
+obj/
+*.o
+*.elf
+*.exe
+*.bin
+*.map
+
+# Logs
+*.log
