@@ -48,7 +48,9 @@ __inline__ uint32 get_block_size(void *va)
 	//TODO: [PROJECT'26.GM#1] DYNAMIC ALLOCATOR - [1] get_block_size
 	//Your code is here
 	//Comment the following line
-	panic("get_block_size() not implemented");
+	//panic("get_block_size() not implemented");
+	struct BlockMetaData *header = (struct BlockMetaData *)((uint32)va - META_DATA_SIZE);
+		return BLOCK_SIZE(header->level);
 
 }
 //===========================
@@ -83,15 +85,47 @@ void *alloc_block(uint32 requiredSize)
 	panic("alloc_block() not implemented");
 }
 
+
+
 //===================================================
 // [3] FREE BLOCK WITH COALESCING:
 //===================================================
+
 void free_block(void *va)
 {
 	//TODO: [PROJECT'26.GM#1] DYNAMIC ALLOCATOR - [3] free_block
 	//Your code is here
 	//Comment the following line
-	panic("free_block() not implemented");
+	//panic("free_block() not implemented");
+	if (va == NULL)
+			return;
+
+		struct BlockMetaData *current = (struct BlockMetaData *)((uint32)va - META_DATA_SIZE);
+		if (current->is_free)
+			return;
+
+		int curLevel = current->level;
+
+
+		while (curLevel < BUDDY_UPPER_LEVEL)
+		{
+			struct BlockMetaData *partner =
+				(struct BlockMetaData *)((uint32)current ^ BLOCK_SIZE(curLevel));
+
+			if (!(partner->is_free && partner->level == curLevel))
+				break;
+
+			LIST_REMOVE(&freeBlockLists[curLevel], partner);
+
+			if ((uint32)partner < (uint32)current)
+				current = partner;
+			curLevel++;
+		}
+
+		current->level = curLevel;
+		current->is_free = 1;
+		LIST_INSERT_HEAD(&freeBlockLists[curLevel], current);
+
 }
 
 //=================================================================================//
