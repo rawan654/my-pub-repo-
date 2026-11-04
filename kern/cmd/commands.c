@@ -122,6 +122,7 @@ struct Command commands[] =
 		{"tst", "run the given test", command_tst, -1},
 		{"kpa", "Find physical address of the given kernel one", command_kpa},
 		{"cbs","creat buddy space",command_create_buddy_space},
+		{"dbs","delete buddy space",command_delete_buddy_space},
 
 };
 
@@ -155,7 +156,18 @@ int command_create_buddy_space(int number_of_arguments,char **arguments)
 	return 0;
 
 }
-
+int command_delete_buddy_space(int number_of_arguments,char **arguments)
+{
+	if(number_of_arguments<2)
+	{
+		cprintf("ERROR,provide virtual address!");
+		return 0;
+	}
+	uint32 va=strtol(arguments[1],NULL,16);
+	delete_buddy_space((void*)va);
+	cprintf("Buddy space at virtual address:%x deleted !\n",va);
+	return 0;
+}
 
 //print name and description of each command
 int command_help(int number_of_arguments, char **arguments)
