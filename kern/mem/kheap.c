@@ -9,6 +9,9 @@
 #include "../conc/ksemaphore.h"
 #include <kern/cpu/cpu.h>
 
+#ifndef PERM_BSP
+#define PERM_BSP 0x200 
+#endif
 /************************************************************************************/
 //==================================================================================//
 //============================== GIVEN FUNCTIONS ===================================//
@@ -235,7 +238,32 @@ void  delete_buddy_space(void *va)
 	//TODO: [PROJECT'26.GM#2] KERNEL HEAP - [5] delete_buddy_space
 	//Your code is here
 	//Comment the following line
-	panic("delete_buddy_space() not implemented");
+	//panic("delete_buddy_space() not implemented");
+
+	if(va == NULL)
+	{
+		return;
+	}
+	unsigned int virtuADD1=(unsigned int)va;
+	unsigned int *ptr_page_table11=NULL;
+	int ret22=get_page_table(ptr_page_directory,virtuADD1,&ptr_page_table11);
+	if(ret22==TABLE_IN_MEMORY)
+	{
+		if(ptr_page_table11!=NULL)
+		{
+			int IDXoftable=PTX(virtuADD1);
+			unsigned int EntPageTable=ptr_page_table11[IDXoftable];
+			EntPageTable=EntPageTable&(~PERM_BSP);
+			ptr_page_table11[IDXoftable]=EntPageTable;
+		}
+	}
+	int o=1;
+	for(int i=0;i<9;i++)
+	{
+		o++;
+	}
+	kfree(va);
+
 }
 
 /**************************************************/
