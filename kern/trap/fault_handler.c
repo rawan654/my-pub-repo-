@@ -170,20 +170,24 @@ void fault_handler(struct Trapframe *tf)
 			//TODO: [PROJECT'26.GM#3] FAULT HANDLER I - [11] Check for invalid pointers
 			//(e.g. pointing to unmarked user heap page, kernel or wrong access rights),
 			//your code is here
-			bool isValid = 1;
-			if (!(fault_va >= USTACKBOTTOM && fault_va < USTACKTOP) && ((faulted_env->env_page_directory[PTX(fault_va)] & PERM_UHPAGE) != PERM_UHPAGE)){
-				isValid = 0;
-			}
-			else if (!(fault_va >= USER_HEAP_START && fault_va < USER_HEAP_MAX)){
-				isValid = 0;
-			}
-			else if ((faulted_env->env_page_directory[PTX(fault_va)] & PERM_PRESENT) != PERM_PRESENT && (faulted_env->env_page_directory[PTX(fault_va)] & PERM_WRITEABLE) != PERM_WRITEABLE){
-				isValid = 0;
+
+			// in user heap but unmarked
+			if (fault_va >= USER_HEAP_START && fault_va < USER_HEAP_MAX){
+				if ((faulted_env->env_page_directory[PTX(fault_va)] & PERM_UHPAGE) != PERM_UHPAGE){
+					env_exit();
+				}
 			}
 
-			if (!isValid){
+			// in kernel (everything above user limit is kernel)
+			if (fault_va >= USER_LIMIT){
 				env_exit();
 			}
+
+			// exists with read-only (not writable)
+			if ((faulted_env->env_page_directory[PTX(fault_va)] & PERM_PRESENT) == PERM_PRESENT && (faulted_env->env_page_directory[PTX(fault_va)] & PERM_WRITEABLE) != PERM_WRITEABLE){
+				env_exit();
+			}
+
 			/*============================================================================================*/
 		}
 
