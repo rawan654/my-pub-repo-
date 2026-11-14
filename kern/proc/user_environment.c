@@ -925,14 +925,18 @@ void* create_user_kern_stack(uint32* ptr_user_page_directory)
 	//remember to leave its bottom page as a GUARD PAGE (i.e. not mapped)
 	//return a pointer to the start of the allocated space (including the GUARD PAGE)
 
-	uint32* ptr_to_start_of_allocated_space = kmalloc(KERNEL_STACK_SIZE);
-	if (ptr_to_start_of_allocated_space == NULL){
-		panic("FAILED TO CREATE SPACE FOR USER KERNEL STACK IN create_user_kern_stack FN");
+	// try to allocate space if fail then panic
+	// use unmap to make guard page
+	// then return the ptr
+	void* ptr_to_start_of_stack = kmalloc(KERNEL_STACK_SIZE);
+	if (ptr_to_start_of_stack == NULL){
+		panic("Failed to create space for user kernel stack in create_user_kern_stack()");
 	}
 
-	unmap_frame(ptr_user_page_directory, (uint32)ptr_to_start_of_allocated_space);
+	uint32 ptr_guard = (uint32)ptr_to_start_of_stack;
+	unmap_frame(ptr_user_page_directory, ptr_guard);
 
-	return ptr_to_start_of_allocated_space;
+	return ptr_to_start_of_stack;
 
 #endif
 }
