@@ -288,6 +288,8 @@ void kfree(void* virtual_address)
 {
 	   unsigned va = (uint32)virtual_address;
 	   unsigned index;
+	   unsigned int *page_table_of_va = NULL;
+	   int is_buddy_page = 0;
 
 		if (virtual_address == NULL)
 			return;
@@ -297,7 +299,10 @@ void kfree(void* virtual_address)
 
 		index = (va - KERNEL_HEAP_START) / PAGE_SIZE;
 
-		if (page_type[index] == PAGE_BUDDY)
+		if (get_page_table(ptr_page_directory, va, &page_table_of_va) == TABLE_IN_MEMORY && page_table_of_va != NULL)
+			is_buddy_page = (page_table_of_va[PTX(va)] & PERM_BSP) != 0;
+
+		if (is_buddy_page)
 		{
 			free_block(virtual_address);
 		}
@@ -335,13 +340,13 @@ unsigned int kheap_physical_address(unsigned int virtual_address)
 		if(retu!=TABLE_IN_MEMORY)
 			return 0;
 
-			int o=1;
+		int o=1;
 		for(int i=0;i<9;i++)
 		{
 			o++;
 		}
 		unsigned int EntryOfPage = ptr_page_table111[PTX(myVirtuAdd)];
-		if((EntryOfPage == 0 && PERM_PRESENT) == 0)
+		if((EntryOfPage & PERM_PRESENT) == 0)
 		{
 			return 0;
 
