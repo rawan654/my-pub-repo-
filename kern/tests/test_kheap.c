@@ -1051,7 +1051,7 @@ int test_kfree_CF_page()
 		expectedVA = 0;
 		int freeFrames = (int)sys_calculate_free_frames() ;
 		int freeDiskFrames = (int)pf_calculate_free_frames() ;
-		uint32 restOfKHeap = (KERNEL_HEAP_MAX - ACTUAL_PAGE_ALLOC_START) - expectedBreak ;
+		uint32 restOfKHeap = (KERNEL_HEAP_MAX) - expectedBreak ;
 		ptr_allocations[allocIndex] = kmalloc(restOfKHeap+1);
 		if (ptr_allocations[allocIndex] != NULL) { correct = 0; cprintf_colored(TEXT_TESTERR_CLR,"%d.1 Allocating insufficient space: should return NULL\n", allocIndex); }
 		if (((int)pf_calculate_free_frames() - freeDiskFrames) != 0) { correct = 0; cprintf_colored(TEXT_TESTERR_CLR,"%d.2 Page file is changed while it's not expected to. (pages are wrongly allocated/de-allocated in PageFile)\n", allocIndex); }
