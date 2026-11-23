@@ -76,7 +76,22 @@ void *alloc_block(uint32 requiredSize)
      while (cur <= BUDDY_UPPER_LEVEL && LIST_EMPTY(&freeBlockLists[cur]))
          cur++;
      if (cur > BUDDY_UPPER_LEVEL)
-         return NULL;
+     {
+         void *page = create_buddy_space();
+         if (page == NULL)
+             return NULL;
+
+         struct BlockMetaData *first = (struct BlockMetaData *)page;
+         struct BlockMetaData *second =
+             (struct BlockMetaData *)((uint32)page + BLOCK_SIZE(BUDDY_UPPER_LEVEL));
+         first->level = BUDDY_UPPER_LEVEL;
+         first->is_free = 1;
+         second->level = BUDDY_UPPER_LEVEL;
+         second->is_free = 1;
+         LIST_INSERT_HEAD(&freeBlockLists[BUDDY_UPPER_LEVEL], second);
+         LIST_INSERT_HEAD(&freeBlockLists[BUDDY_UPPER_LEVEL], first);
+         cur = BUDDY_UPPER_LEVEL;
+     }
 
      struct BlockMetaData *blk = LIST_FIRST(&freeBlockLists[cur]);
      LIST_REMOVE(&freeBlockLists[cur], blk);
@@ -130,6 +145,22 @@ void free_block(void *va)
     if ((uint32)partner < (uint32)current)
      current = partner;
     curLevel++;
+   }
+
+   if (curLevel == BUDDY_UPPER_LEVEL)
+   {
+    struct BlockMetaData *half =
+     (struct BlockMetaData *)((uint32)current ^ BLOCK_SIZE(curLevel));
+
+    if (half->is_free && half->level == curLevel)
+    {
+     LIST_REMOVE(&freeBlockLists[curLevel], half);
+
+     if ((uint32)half < (uint32)current)
+      current = half;
+     delete_buddy_space((void *)current);
+     return;
+    }
    }
 
    current->level = curLevel;
